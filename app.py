@@ -339,8 +339,8 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-
-        return render_template('home.html', messages=messages)
+        liked_message_ids = [msg.id for msg in g.user.likes]
+        return render_template('home.html', messages=messages, liked_message_ids = liked_message_ids)
 
     else:
         return render_template('home-anon.html')
@@ -362,3 +362,24 @@ def add_header(req):
     req.headers["Expires"] = "0"
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
+
+##############################################################################
+# Handle likes
+
+@app.route('/users/add_like/<msg_id>', methods=['POST'])
+def handle_likes(msg_id):
+    if not g.user:
+        return redirect('/login')
+
+    message = Message.query.get_or_404(msg_id)
+    like = Likes(message_id = message.id, user_id = g.user.id)
+    db.session.add(like)
+    db.session.commit()
+    return redirect('/')
+    
+@app.route('/users/delete_like/<msg_id>', methods=['POST'])
+def remove_like(msg_id):
+    if g.user:
+        Likes.query.filter(Likes.message_id==msg_id, Likes.user_id==g.user.id).delete()
+        db.session.commit()
+        return redirect('/')
