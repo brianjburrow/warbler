@@ -4,8 +4,8 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm
-from models import db, connect_db, User, Message
+from forms import UserAddForm, LoginForm, MessageForm, UserUpdateForm
+from models import db, connect_db, User, Message, Follows, Likes
 
 CURR_USER_KEY = "curr_user"
 
@@ -32,17 +32,14 @@ connect_db(app)
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
-
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
-
     else:
         g.user = None
 
 
 def do_login(user):
     """Log in user."""
-
     session[CURR_USER_KEY] = user.id
 
 
@@ -112,8 +109,9 @@ def login():
 @app.route('/logout')
 def logout():
     """Handle logout of user."""
-
-    # IMPLEMENT THIS
+    do_logout()
+    flash(f"Successfully logged out!")
+    return redirect('/login')
 
 
 ##############################################################################
@@ -211,7 +209,48 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    # Ensure user is logged in
+    # Show a form with 
+        # username, email, image_url, header_img_url, bio, password
+    # check that password is valid password for the user
+    # If not, flash error and return to homepage
+    # edit the user for all of these fields, except password
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect('/login')
+    
+    form = UserUpdateForm()
+    
+    if form.validate_on_submit():
+        user = User.authenticate(g.user.username, form.password.data)
+        if user:
+            update_user(user, form)
+            db.session.commit()
+        else:
+            flash("Incorrect password")
+        return redirect(f'/users/{user.id}')
+    else:
+        form = update_form(g.user, form)
+        return render_template(f'users/edit.html', form = form)
+
+def update_form(user, form):
+    form.username.data = user.username if user.username else None
+    form.email.data = user.email if user.email else None
+    form.image_url.data = user.image_url if user.image_url else None
+    form.header_image_url.data = user.header_image_url if user.header_image_url else None
+    form.bio.data = user.bio if user.bio else None
+    return form
+
+def update_user(user, form):
+    user.username = form.username.data if form.username.data else user.username
+    user.email = form.email.data if form.email.data else user.email
+    user.image_url = form.image_url.data if form.image_url.data else user.image_url
+    user.header_img_url = form.header_img_url.data if form.header_img_url.data else user.header_img_url
+    user.bio = form.bio.data if form.bio.data else user.bio
+    db.session.add(user)
+    pass
+
+    
 
 
 @app.route('/users/delete', methods=["POST"])
@@ -292,8 +331,11 @@ def homepage():
     """
 
     if g.user:
+        friend_ids = [user.id for user in g.user.following]
+        friend_ids.append(g.user.id)
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(friend_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
