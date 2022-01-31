@@ -32,6 +32,12 @@ class Likes(db.Model):
 
     __tablename__ = 'likes' 
 
+    __table_args__ = (
+        db.Index(
+            'user_id', 'message_id', unique=True
+        ),
+    )
+
     id = db.Column(
         db.Integer,
         primary_key=True
@@ -44,8 +50,7 @@ class Likes(db.Model):
 
     message_id = db.Column(
         db.Integer,
-        db.ForeignKey('messages.id', ondelete='cascade'),
-        unique=True
+        db.ForeignKey('messages.id', ondelete='cascade')
     )
 
 
