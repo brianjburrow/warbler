@@ -211,7 +211,7 @@ def profile():
 
     # Ensure user is logged in
     # Show a form with 
-        # username, email, image_url, header_img_url, bio, password
+        # username, email, image_url, header_image_url, bio, password
     # check that password is valid password for the user
     # If not, flash error and return to homepage
     # edit the user for all of these fields, except password
@@ -222,11 +222,14 @@ def profile():
     form = UserUpdateForm()
     
     if form.validate_on_submit():
+        print("HERE", flush=True)
         user = User.authenticate(g.user.username, form.password.data)
         if user:
+            print("YAYYY", flush=True)
             update_user(user, form)
             db.session.commit()
         else:
+            print("AHHHH", flush=True)
             flash("Incorrect password")
         return redirect(f'/users/{user.id}')
     else:
@@ -245,7 +248,7 @@ def update_user(user, form):
     user.username = form.username.data if form.username.data else user.username
     user.email = form.email.data if form.email.data else user.email
     user.image_url = form.image_url.data if form.image_url.data else user.image_url
-    user.header_img_url = form.header_img_url.data if form.header_img_url.data else user.header_img_url
+    user.header_image_url = form.header_image_url.data if form.header_image_url.data else user.header_image_url
     user.bio = form.bio.data if form.bio.data else user.bio
     db.session.add(user)
     pass
@@ -293,7 +296,6 @@ def messages_add():
         return redirect(f"/users/{g.user.id}")
 
     return render_template('messages/new.html', form=form)
-
 
 @app.route('/messages/<int:message_id>', methods=["GET"])
 def messages_show(message_id):
