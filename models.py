@@ -33,8 +33,8 @@ class Likes(db.Model):
     __tablename__ = 'likes' 
 
     __table_args__ = (
-        db.Index(
-            'user_id', 'message_id', unique=True
+        db.UniqueConstraint(
+            'user_id', 'message_id', name="_like_uc"
         ),
     )
 
@@ -117,7 +117,8 @@ class User(db.Model):
 
     likes = db.relationship(
         'Message',
-        secondary="likes"
+        secondary="likes",
+        backref="users"
     )
 
     def __repr__(self):

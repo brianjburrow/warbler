@@ -64,7 +64,7 @@ def signup():
 
     form = UserAddForm()
 
-    if form.validate_on_submit():
+    if form.validate_on_submit():   
         try:
             user = User.signup(
                 username=form.username.data,
@@ -148,6 +148,7 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
+
     return render_template('users/show.html', user=user, messages=messages)
 
 
@@ -367,8 +368,12 @@ def add_header(req):
 
 ##############################################################################
 # Handle likes
+@app.route('/users/<user_id>/likes')
+def show_likes(user_id):
+    user = User.query.get_or_404(user_id)
+    return render_template('users/likes.html', user=user)
 
-@app.route('/users/add_like/<msg_id>', methods=['POST'])
+@app.route('/users/add_like/<msg_id>', methods=['GET'])
 def handle_likes(msg_id):
     if not g.user:
         return redirect('/login')
@@ -377,11 +382,11 @@ def handle_likes(msg_id):
     like = Likes(message_id = message.id, user_id = g.user.id)
     db.session.add(like)
     db.session.commit()
-    return redirect('/')
+    return redirect(request.referrer)
     
-@app.route('/users/delete_like/<msg_id>', methods=['POST'])
+@app.route('/users/delete_like/<msg_id>', methods=['GET'])
 def remove_like(msg_id):
     if g.user:
         Likes.query.filter(Likes.message_id==msg_id, Likes.user_id==g.user.id).delete()
         db.session.commit()
-        return redirect('/')
+        return redirect(request.referrer)

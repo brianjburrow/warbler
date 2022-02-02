@@ -259,6 +259,7 @@ nav + .container {
   position: relative;
 }
 
+
 #messages .message-link {
   position: absolute;
   top: 0;
@@ -282,6 +283,15 @@ nav + .container {
 #messages:not(.no-hover) .list-group-item:hover {
   background-color: #e6ecf0;
 }
+
+#messages {
+  position: relative;
+}
+
+.star-btn{
+  display:inline-block;
+}
+
 
 #sidebar-username {
   margin-top: 30px;
