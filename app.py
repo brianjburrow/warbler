@@ -52,15 +52,7 @@ def do_logout():
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
-    """Handle user signup.
-
-    Create new user and add to DB. Redirect to home page.
-
-    If form not valid, present form.
-
-    If the there already is a user with that username: flash message
-    and re-present form.
-    """
+    """Handle user signup."""
 
     form = UserAddForm()
 
@@ -140,8 +132,6 @@ def users_show(user_id):
 
     user = User.query.get_or_404(user_id)
 
-    # snagging messages in order from the database;
-    # user.messages won't be in order by default
     messages = (Message
                 .query
                 .filter(Message.user_id == user_id)
@@ -227,6 +217,7 @@ def profile():
     return render_template(f'users/edit.html', form = form)
 
 def update_form(user, form):
+    '''Update a user form'''
     form.username.data = user.username if user.username else None
     form.email.data = user.email if user.email else None
     form.image_url.data = user.image_url if user.image_url else None
@@ -235,6 +226,7 @@ def update_form(user, form):
     return form
 
 def update_user(user, form):
+    '''Update a user object and commit to the database'''
     user.username = form.username.data if form.username.data else user.username
     user.email = form.email.data if form.email.data else user.email
     user.image_url = form.image_url.data if form.image_url.data else user.image_url
@@ -268,8 +260,7 @@ def delete_user():
 
 @app.route('/messages/new', methods=["GET", "POST"])
 def messages_add():
-    """Add a message:
-    """
+    """Add a message:"""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -357,11 +348,13 @@ def add_header(req):
 # Handle likes
 @app.route('/users/<int:user_id>/likes')
 def show_likes(user_id):
+    '''Show the messages that a user likes'''
     user = User.query.get_or_404(user_id)
     return render_template('users/likes.html', user=user)
 
 @app.route('/users/add_like/<int:msg_id>', methods=['GET'])
 def handle_likes(msg_id):
+    '''Add a liked message for a particular user to the database'''
     if not g.user:
         return redirect('/login')
 
@@ -373,6 +366,7 @@ def handle_likes(msg_id):
     
 @app.route('/users/delete_like/<int:msg_id>', methods=['GET'])
 def remove_like(msg_id):
+    '''Remove a liked message for a particular user from the database'''
     if g.user:
         Likes.query.filter(Likes.message_id==msg_id, Likes.user_id==g.user.id).delete()
         db.session.commit()
