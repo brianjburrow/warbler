@@ -1,0 +1,36 @@
+STEP ONE:
+
+The follows table has an unusual arrangement b/c it points to two users.  
+It has two foreign keys from the same table (and column), because you need to point to two distinct users.
+
+STEP TWO:
+
+No questions
+
+STEP THREE:
+
+No questions
+
+STEP FOUR:
+
+No questions.
+
+STEP FIVE:
+
+No questions.
+
+STEP SIX:
+
+STEP SEVEN:
+
+The logged in user id is being tracked through flask sessions.
+
+Flasks g object is instantiated every time a request is made, and is available during the request, but not after the request completes.
+
+add_user_to_g is an easy way to query for the current user who's id is stored in the flask session.  It gives us access
+to g.user during the request (and in the associated jinga template).
+
+@app.before_request is executed everytime a route is accessed.  
+
+
+
