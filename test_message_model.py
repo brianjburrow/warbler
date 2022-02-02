@@ -64,7 +64,7 @@ class MessageModelTestCase(TestCase):
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
 
-
+        # Add some test data to the database
         follow = Follows(user_following_id = 1, user_being_followed_id = 2)
         message = Message(text="Comment", user_id=1)
         db.session.add_all([follow, message])

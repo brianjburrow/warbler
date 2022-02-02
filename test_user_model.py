@@ -64,7 +64,7 @@ class UserModelTestCase(TestCase):
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
 
-
+        # create some test data in the database
         follow = Follows(user_following_id = 1, user_being_followed_id = 2)
         message = Message(text="Comment", user_id=1)
         db.session.add_all([follow, message])
@@ -78,17 +78,22 @@ class UserModelTestCase(TestCase):
 
         # Does is_following successfully detect when user1 is not following user2?
         self.assertFalse(u2.is_following(u))
+
         # Does is_followed_by successfully detect when user1 is followed by user2?
         self.assertTrue(u2.is_followed_by(u))
+
         # Does is_followed_by successfully detect when user1 is not followed by user2?
         self.assertFalse(u.is_followed_by(u2))
+
         # Does User.create successfully create a new user given valid credentials?
         u3 = User.signup(username = 'username', email='test3@test.com', password='testpass', image_url = None)
         db.session.add(u3)
         db.session.commit()
-        self.assertEqual(User.query.get(3).username, 'username')
-        self.assertEqual(User.query.get(3).email, 'test3@test.com')
-        self.assertEqual(User.query.get(3).image_url, '/static/images/default-pic.png')
+        
+        # test to see if correct information is saved
+        self.assertEqual(u3.username, 'username')
+        self.assertEqual(u3.email, 'test3@test.com')
+        self.assertEqual(u3.image_url, '/static/images/default-pic.png')
         # Does User.create fail to create a new user if any of the validations (e.g. uniqueness, non-nullable fields) fail?
         # self.assertRaises(TypeError, User.signup())
         with self.assertRaises(TypeError):

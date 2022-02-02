@@ -71,6 +71,7 @@ class MessageViewTestCase(TestCase):
             # Make sure it redirects
             self.assertEqual(resp.status_code, 302)
 
+            # make sure it adds the message text
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
 
@@ -78,24 +79,23 @@ class MessageViewTestCase(TestCase):
             resp = c.get('/messages/new')
             html = resp.get_data(as_text=True)
             
+            # Make sure we are importing base.html
             self.assertIn('<div class="navbar-header">', html)
-            self.assertIn('text', html)
         
     def test_view_message(self):
+        '''Test viewing a message'''
         with self.client as c:
 
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            # Now, that session setting is saved, so we can have
-            # the rest of ours test
+            # create a test message
 
             resp = c.post("/messages/new", data={"text": "Hello"})
-
             msg = Message.query.one()
 
+            # try to access the message we just created
             resp = c.get(f"/messages/{msg.id}")
-
             html = resp.get_data(as_text=True)
             
             # test that 'base.html' is imported, thus bringing in navbar
@@ -111,6 +111,7 @@ class MessageViewTestCase(TestCase):
             self.assertNotIn('Follow', html)
             
     def test_delete_message(self):
+        '''Test deleting a message'''
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id 
@@ -119,30 +120,43 @@ class MessageViewTestCase(TestCase):
             resp = c.post("/messages/new", data={"text": "Hello"})
             msg = Message.query.one()
 
+            # try to delete that message
             resp = c.post(f"messages/{msg.id}/delete")
 
+            # make sure we are redirecting
             self.assertEqual(resp.status_code, 302)
 
     def test_new_message_unauthorized(self):
+        '''Test creating a message without logging in first'''
         with self.client as c:
+            # try to make a new message
             resp = c.post('/messages/new', data={"text": "Hello"})
             
+            # test redirect
             self.assertEqual(resp.status_code, 302)
 
+            # try to make a new message again, but follow redirect
             resp = c.post('/messages/new', data={"text":"Hello"}, follow_redirects=True)
 
+            # test status code and get data
             self.assertEqual(resp.status_code, 200)
             html = resp.get_data(as_text=True)
 
+            # Make sure we flash the correct message
             self.assertIn("Access unauthorized.",html)
     
     def test_delete_message_unauthorized(self):
+        '''Test deleting a message without logging in first'''
         with self.client as c:
+            # test redirect
             resp = c.post('/messages/1/delete')
             self.assertEqual(resp.status_code, 302)
 
+            # test after following redirect
             resp = c.post('/messages/1/delete', follow_redirects=True)
             self.assertEqual(resp.status_code, 200)
+
+            # make sure error is flashed correctly
             html = resp.get_data(as_text=True)
             self.assertIn("Access unauthorized", html)
 

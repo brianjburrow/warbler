@@ -97,6 +97,7 @@ class MessageViewTestCase(TestCase):
 
 
     def test_login_unauthorized(self):
+        '''Does the route handle incorrect logins correctly'''
         with self.client as c:
             # test POST response, invalid credentials
             resp = c.post('/login', data = {'username':'wrong_user', 'password':"testuser"}, follow_redirects=True)
@@ -205,6 +206,7 @@ class MessageViewTestCase(TestCase):
         pass 
 
     def test_user_following_unauthorized(self):
+        '''Does following handle unauthorized users correctly?'''
         with self.client as c:
             resp = c.get(f'/users/{self.testuser.id}/following', follow_redirects=True)
             html = resp.get_data(as_text=True)
