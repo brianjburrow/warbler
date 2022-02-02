@@ -301,20 +301,23 @@ class MessageViewTestCase(TestCase):
                 "header_image_url": None,
                 "bio":None,
                 "image_url":None}, follow_redirects= True   )
-            print(resp)
-            print(resp.get_data(as_text=True))
+            user = User.query.get(self.testuser.id)
             self.assertEqual(resp.status_code, 200)
-            self.assertEqual(self.testuser.username, 'updated_test_user')
+            self.assertEqual(user.username, 'updated_test_user')
 
             # test updating user with incorrect password
             resp = c.post('/users/profile', 
                 data={"username":"updated_test_user",
-                "password":"incorrect_password"}, 
+                "email":"test-email@email.com",
+                "password":"incorrect_password",
+                "header_image_url": None,
+                "bio":None,
+                "image_url":None}, 
                 follow_redirects=True)
             
             html = resp.get_data(as_text=True)
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("Incorrect Password",html)
+            self.assertIn("Incorrect password.",html)
         pass 
 
     def test_user_profile_unauthorized(self):

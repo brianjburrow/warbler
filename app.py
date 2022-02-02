@@ -216,17 +216,15 @@ def profile():
     form = UserUpdateForm()
     
     if form.validate_on_submit():
-
         user = User.authenticate(g.user.username, form.password.data)
         if user:
             update_user(user, form)
-            db.session.commit()
+            return redirect(f'/users/{user.id}')
         else:
-            flash("Incorrect password")
-        return redirect(f'/users/{user.id}')
-    else:
-        form = update_form(g.user, form)
-        return render_template(f'users/edit.html', form = form)
+            flash("Incorrect password.", 'error')
+        
+    form = update_form(g.user, form)
+    return render_template(f'users/edit.html', form = form)
 
 def update_form(user, form):
     form.username.data = user.username if user.username else None
@@ -243,6 +241,7 @@ def update_user(user, form):
     user.header_image_url = form.header_image_url.data if form.header_image_url.data else user.header_image_url
     user.bio = form.bio.data if form.bio.data else user.bio
     db.session.add(user)
+    db.session.commit()
     pass
 
     
