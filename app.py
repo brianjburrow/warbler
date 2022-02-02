@@ -209,13 +209,6 @@ def stop_following(follow_id):
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
-
-    # Ensure user is logged in
-    # Show a form with 
-        # username, email, image_url, header_image_url, bio, password
-    # check that password is valid password for the user
-    # If not, flash error and return to homepage
-    # edit the user for all of these fields, except password
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect('/login')
@@ -223,14 +216,12 @@ def profile():
     form = UserUpdateForm()
     
     if form.validate_on_submit():
-        print("HERE", flush=True)
+
         user = User.authenticate(g.user.username, form.password.data)
         if user:
-            print("YAYYY", flush=True)
             update_user(user, form)
             db.session.commit()
         else:
-            print("AHHHH", flush=True)
             flash("Incorrect password")
         return redirect(f'/users/{user.id}')
     else:
@@ -279,8 +270,6 @@ def delete_user():
 @app.route('/messages/new', methods=["GET", "POST"])
 def messages_add():
     """Add a message:
-
-    Show form if GET. If valid, update message and redirect to user page.
     """
 
     if not g.user:
@@ -342,8 +331,7 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-        liked_message_ids = [msg.id for msg in g.user.likes]
-        return render_template('home.html', messages=messages, liked_message_ids = liked_message_ids)
+        return render_template('home.html', messages=messages, user = g.user)
 
     else:
         return render_template('home-anon.html')
@@ -368,12 +356,12 @@ def add_header(req):
 
 ##############################################################################
 # Handle likes
-@app.route('/users/<user_id>/likes')
+@app.route('/users/<int:user_id>/likes')
 def show_likes(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('users/likes.html', user=user)
 
-@app.route('/users/add_like/<msg_id>', methods=['GET'])
+@app.route('/users/add_like/<int:msg_id>', methods=['GET'])
 def handle_likes(msg_id):
     if not g.user:
         return redirect('/login')
@@ -384,7 +372,7 @@ def handle_likes(msg_id):
     db.session.commit()
     return redirect(request.referrer)
     
-@app.route('/users/delete_like/<msg_id>', methods=['GET'])
+@app.route('/users/delete_like/<int:msg_id>', methods=['GET'])
 def remove_like(msg_id):
     if g.user:
         Likes.query.filter(Likes.message_id==msg_id, Likes.user_id==g.user.id).delete()
